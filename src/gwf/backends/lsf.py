@@ -16,7 +16,7 @@ None.
 * **queue (str):**
     Queue to submit the target to (default: normal).
     for different purposes or priorities.
-* **token_* (int):**
+* **tokens [str,int]:**
     Number of lsf resource tokens to request
 
 """
@@ -33,7 +33,12 @@ from .utils import call, has_exe
 
 logger = logging.getLogger(__name__)
 
-TARGET_DEFAULTS = {"queue": "normal", "memory": "4GB", "cores": 1}
+TARGET_DEFAULTS = {
+    "queue": "normal",
+    "memory": "4GB",
+    "cores": 1,
+    "tokens": None
+}
 
 BJOB_STATES = {
     "PEND": BackendStatus.SUBMITTED,
@@ -93,22 +98,20 @@ class LSFOps:
         queue = target_options["queue"]
         
         # Get any token_* options and convert to token_name,number
-        tokens = {}
-        for option in target_options:
-            if option.startswith("token_"):
-                token_name = option[6:]
-                tokens[token_name] = int(target_options[option])
         out = []
         out.append("#!/bin/bash")
         out.append(f"#BSUB -M {memory}")
-        # Build select line - need to know what tokens to request, if any
-        token_selects = ""
-        for token in tokens:
-            token_selects += f" && {token}>={tokens[token]}"
-        out.append(f"#BSUB -R 'select[mem>{memory}{token_selects}] span[hosts=1]'")
-        out.append(f"#BSUB -R 'rusage[mem={memory}]'")
-        for token in tokens:
-            out.append(f"#BSUB -R 'rusage[{token}={tokens[token]}]'")
+        # Build resource select and rusage lines - need to know what tokens to request, if any
+        tokens = target_options["tokens"]
+        if tokens:
+            token_name, num_tokens = tokens
+            token_select = f" && {token_name}>={num_tokens}"
+            token_rusage = f" && {token_name}={num_tokens}"
+        else:
+            token_select = ""
+            token_rusage = ""
+        out.append(f"#BSUB -R 'select[mem>{memory}{token_select}] span[hosts=1]'")
+        out.append(f"#BSUB -R 'rusage[mem={memory}{token_rusage}]'")
         out.append(f"#BSUB -n {cores}")
         out.append(f"#BSUB -q {queue}")
         out.append(f"#BSUB -oo {stdout_path}")
