@@ -157,7 +157,7 @@ def submit_backend(target, dependencies, backend, spec_hashes):
     new_options.update(target.options)
 
     for option_name, option_value in list(new_options.items()):
-        if option_name not in backend.target_defaults.keys():
+        if option_name not in backend.target_defaults.keys() and not option_name.startswith("token_"):
             logger.warning(
                 "Option '%s' used in '%s' is not supported by backend. Ignored.",
                 option_name,
