@@ -17,7 +17,8 @@ None.
     Queue to submit the target to (default: normal).
     for different purposes or priorities.
 * **tokens [str,int]:**
-    Number of lsf resource tokens to request
+    Name and number of LSF resource tokens to request (default: unset). If supplied 
+    adds `token_name>=token_num` to `-R` strings.
 
 """
 
@@ -102,7 +103,7 @@ class LSFOps:
         out.append("#!/bin/bash")
         out.append(f"#BSUB -M {memory}")
         # Build resource select and rusage lines - need to know what tokens to request, if any
-        tokens = target_options["tokens"]
+        tokens = target_options.get("tokens", None)
         if tokens:
             token_name, num_tokens = tokens
             token_select = f" && {token_name}>={num_tokens}"
