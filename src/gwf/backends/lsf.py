@@ -115,13 +115,11 @@ class LSFOps:
         tokens = target_options.get("tokens", None)
         if tokens:
             token_name, num_tokens = tokens
-            token_select = f" && {token_name}>={num_tokens}"
-            token_rusage = f" && {token_name}={num_tokens}"
+            out.append(f"#BSUB -R 'select[mem>{memory} && {token_name}>={num_tokens}] span[hosts=1]'")
+            out.append(f"#BSUB -R 'rusage[{token_name}={num_tokens}]'")
         else:
-            token_select = ""
-            token_rusage = ""
-        out.append(f"#BSUB -R 'select[mem>{memory}{token_select}] span[hosts=1]'")
-        out.append(f"#BSUB -R 'rusage[mem={memory}{token_rusage}]'")
+            out.append(f"#BSUB -R 'select[mem>{memory}] span[hosts=1]'")
+        out.append(f"#BSUB -R 'rusage[mem={memory}]'")
         out.append(f"#BSUB -n {cores}")
         out.append(f"#BSUB -q {queue}")
         out.append(f"#BSUB -oo {stdout_path}")
