@@ -51,7 +51,7 @@ BJOB_STATES = {
     "PSUSP": BackendStatus.FAILED,
     "USUSP": BackendStatus.FAILED,
     "SSUSP": BackendStatus.FAILED,
-    "UNKWN": BackendStatus.UNKNOWN,
+    "UNKWN": BackendStatus.RUNNING,
 }
 
 
